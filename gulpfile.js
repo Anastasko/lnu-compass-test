@@ -4,5 +4,5 @@ var Mocha = require('mocha');
 gulp.task('test', function () {
     const mocha = new Mocha();
     mocha.addFile('app/app.js');
-    mocha.run();
+    mocha.ui('tdd').run();
 });

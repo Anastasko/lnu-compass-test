@@ -1,59 +1,54 @@
-var config = require('../config')
+var genericService = require('../service');
 
-var should = require('chai').should(),
-    expect = require('chai').expect,
-    supertest = require('supertest'),
-    assert = require('assert'),
-    api = supertest(config.host)
+var url = '/map';
+let service = genericService(url);
+let cityItemService = genericService('/cityItem')
+var chai = require('chai');
+chai.use(require('chai-shallow-deep-equal'));
+var expect = chai.expect;
 
+module.exports = {
 
-describe('Map', function() {
+    run: function() {
 
-    it('get all', function(done) {
-        api.get('/map')
-            .end(function(err, res) {
-                expect(res.statusCode).to.equal(200);
-                expect(res.body.length).to.equal(0);
-                done();
+        describe(url, function() {
+
+            let example = {};
+
+            before(function(done) {
+                Promise.all(
+                        [
+                            cityItemService.having.created({}),
+                            cityItemService.having.created({}),
+                        ]
+                    )
+                    .then(function(owners) {
+
+                        owner1 = owners[0];
+                        owner2 = owners[1];
+
+                        example.item = {
+                            floor: 7,
+                            cityItem: {
+                                id: owner1.id
+                            }
+                        };
+
+                        example.itemUpd = {
+                            floor: 8,
+                            cityItem: {
+                                id: owner2.id
+                            }
+                        }
+                        done();
+                    })
             });
-    });
 
-    it('create', function(done) {
-        new Promise(function(resolve, reject) {
-            api.get('/cityItem')
-                .expect(200)
-                .end(function(err, res) {
-                    expect(res.statusCode).to.equal(200);
-                    id = res.body[0].id;
-                    resolve(id);
-                });
-        }).then(function(id) {
-            cityItemId = id;
-            api.post('/map/create')
-                .send({
-                    floor: 5,
-                    cityItem: {
-                      id: id
-                    }
-                })
-                .end(function(err, res) {
-                    expect(res.statusCode).to.equal(200);
-                    assert.ok(!isNaN(res.body), JSON.stringify(res.body) + ' not a number ');
-                    done();
-                });
+            service.run(example);
+
         });
 
-    });
+    },
 
-    it('create check', function(done) {
-        api.get('/map')
-            .end(function(err, res) {
-                expect(res.statusCode).to.equal(200);
-                expect(res.body.length).to.equal(1);
-                expect(res.body[0].floor).to.equal(5);
-                expect(res.body[0].cityItem.id).to.equal(cityItemId);
-                done();
-            });
-    });
-
-});
+    service: service
+};

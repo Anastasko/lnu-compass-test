@@ -1,8 +1,7 @@
-var host = 'localhost:8080/lnucompass'
-
 var should = require('chai').should(),
     expect = require('chai').expect,
-    api = require('supertest')(host),
+    config = require('./config'),
+    api = require('supertest')(config.host),
     assert = require('assert');
 
 var Api = function(prefix) {
@@ -30,12 +29,18 @@ var Api = function(prefix) {
         },
 
         create: function(item) {
+            if (config.debug){
+              console.log(' - api: creating ' + JSON.stringify(item));
+            }
             return new Promise(function(resolve, reject) {
                 api.post(prefix + '/create')
                     .send(item)
                     .end(function(err, res) {
                         expect(res.statusCode).to.equal(200);
                         assert.ok(!isNaN(res.body), 'id not a number');
+                        if (config.debug){
+                          console.log(' - api: created ' + JSON.stringify(item) + ' with id: ' + res.body);
+                        }
                         resolve(res.body);
                     });
             });
@@ -54,6 +59,8 @@ var Api = function(prefix) {
         },
 
         delete: function(id) {
+            expect(id).to.exist;
+            expect(id).to.be.a('number');
             return new Promise(function(resolve, reject) {
                 api.post(prefix + `/delete/${id}`)
                     .end(function(err, res) {
