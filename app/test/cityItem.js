@@ -1,103 +1,75 @@
-var config = require('../config')
+var expect = require('chai').expect,
+    assert = require('assert');
 
-var should = require('chai').should(),
-    expect = require('chai').expect,
-    supertest = require('supertest'),
-    assert = require('assert'),
-    api = supertest(config.host)
+var url = '/cityItem';
 
+describe(url, function() {
 
-describe('CityItem', function() {
+    var api = require('../api')(url);
 
-    it('get all', function(done) {
-        api.get('/cityItem')
-            .end(function(err, res) {
-                expect(res.statusCode).to.equal(200);
-                expect(res.body.length).to.equal(0);
-                done();
-            });
-    });
+    var having = {
 
-    let some_id;
-
-    it('create', function(done) {
-        new Promise(function(resolve, reject) {
-            api.post('/cityItem/create')
-                .send({
+        created: function() {
+            return api.create({
                     name: 'test name',
                     longitude: 123,
                     latitude: 777
                 })
-                .end(function(err, res) {
-                    expect(res.statusCode).to.equal(200);
-                    assert.ok(!isNaN(res.body), 'id not a number');
-                    resolve(res.body);
-                })
-        }).then(function(id) {
-            some_id = id;
-            api.get(`/cityItem/${id}`)
-                .end(function(err, res) {
-                    expect(res.statusCode).to.equal(200);
-                    expect(res.body.id).to.equal(id);
-                    expect(res.body.name).to.equal('test name');
-                    expect(res.body.longitude).to.equal(123);
-                    expect(res.body.latitude).to.equal(777);
-                    done();
+                .then(api.findOne)
+                .then(function(item) {
+                    expect(item.name).to.equal('test name');
+                    expect(item.longitude).to.equal(123);
+                    expect(item.latitude).to.equal(777);
+                    return item.id;
                 });
+        }
+
+    };
+
+    it('findAll()', function(done) {
+        api.findAll().then(function(data) {
+            expect(data.length).to.equal(0);
+            done();
         });
     });
 
-    it('get all', function(done) {
-        api.get('/cityItem')
-            .end(function(err, res) {
-                expect(res.statusCode).to.equal(200);
-                expect(res.body.length).to.equal(1);
-                done();
-            });
+    it('create()', function(done) {
+        having.created().then(function() {
+            done();
+        });
     });
 
-    it('update', function(done) {
-        new Promise(function(resolve, reject) {
-            api.post('/cityItem/update')
-                .send({
-                    id: some_id,
+    it('update()', function(done) {
+        let ID;
+        having.created()
+            .then(function(id) {
+                ID = id;
+                return api.update({
+                    id: id,
                     name: 'test name 2',
                     longitude: 1234,
                     latitude: 7778
                 })
-                .end(function(err, res) {
-                    expect(res.statusCode).to.equal(200);
-                    resolve();
-                })
-        }).then(function() {
-          api.get(`/cityItem/${some_id}`)
-              .end(function(err, res) {
-                  expect(res.statusCode).to.equal(200);
-                  expect(res.body.id).to.equal(some_id);
-                  expect(res.body.name).to.equal('test name 2');
-                  expect(res.body.longitude).to.equal(1234);
-                  expect(res.body.latitude).to.equal(7778);
-                  done();
-              });
-        });
+            })
+            .then(api.findOne)
+            .then(function(item) {
+                expect(item.id).to.equal(ID);
+                expect(item.name).to.equal('test name 2');
+                expect(item.longitude).to.equal(1234);
+                expect(item.latitude).to.equal(7778);
+                done();
+            });
     });
 
     it('delete', function(done) {
-        new Promise(function(resolve, reject) {
-            api.post(`/cityItem/delete/${some_id}`)
-                .end(function(err, res) {
-                    expect(res.statusCode).to.equal(200);
-                    resolve();
-                })
-        }).then(function() {
-          api.get(`/cityItem/${some_id}`)
-              .end(function(err, res) {
-                  expect(res.statusCode).to.equal(404);
-                  done();
-              });
-        });
-    });
+        having.created()
+            .then(api.delete)
+            .then(function(id) {
+                api.findOne(id, 404);
+                done();
+            });
 
+    });
 
 
 });
