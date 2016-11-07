@@ -11,26 +11,16 @@ var service = function(url) {
     let api = Api(url);
 
     let having = {
-        item: {},
         created: function(item) {
             if (config.debug) {
                 console.log('having created ' + JSON.stringify(item) +
                     ' ? ');
             }
-            return having.item[item.id] ?
-                new Promise(function(resolve, reject) {
-                    let item1 = having.item[item.id];
-                    if (config.debug) {
-                        console.log('exit having created ' + JSON.stringify(item1) + ' with "from cache"');
-                    }
-                    resolve(item1);
-                }) :
-                api.create(item)
+            return api.create(item)
                 .then(api.findOne)
                 .then(function(i) {
                     item['id'] = i.id;
                     expect(i).to.shallowDeepEqual(item);
-                    having.item[i.id] = item;
                     if (config.debug) {
                         console.log('exit having created ' + JSON.stringify(item) +
                             ' ?, with "no, created" ');
@@ -45,6 +35,13 @@ var service = function(url) {
         having: having,
 
         run: function(example) {
+
+            beforeEach(function(done){
+              rootApi.post('/reset')
+              .then(function(){
+                done();
+              });
+            });
 
             it('create()', function() {
                 return having.created(example.item);

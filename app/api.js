@@ -4,6 +4,12 @@ var should = require('chai').should(),
     api = require('supertest')(config.host),
     assert = require('assert');
 
+var getException = function(text){
+  let ind1 = text.indexOf('<h1>');
+  let ind2 = text.indexOf('</h1>');
+  return (ind1 > 0 && ind2 > 0 && text.substring(ind1+4, ind2)) || text || '';
+}
+
 var Api = function(prefix) {
 
     return {
@@ -12,8 +18,8 @@ var Api = function(prefix) {
             return new Promise(function(resolve, reject) {
                 api.get(prefix)
                     .end(function(err, res) {
-                        expect(res.statusCode).to.equal(200);
-                        resolve(res.body);
+                      assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
+                      resolve(res.body);
                     });
             });
         },
@@ -22,7 +28,7 @@ var Api = function(prefix) {
             return new Promise(function(resolve, reject) {
                 api.get(prefix + '/' + id)
                     .end(function(err, res) {
-                        expect(res.statusCode).to.equal(statusCode);
+                        assert.equal(res.statusCode, statusCode, res.statusCode + ' != ' + statusCode + '. '+ getException(res.text));
                         resolve(res.body);
                     });
             });
@@ -36,10 +42,12 @@ var Api = function(prefix) {
                 api.post(prefix + '/create')
                     .send(item)
                     .end(function(err, res) {
-                        expect(res.statusCode).to.equal(200);
+                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
                         assert.ok(!isNaN(res.body), 'id not a number');
                         if (config.debug){
-                          console.log(' - api: created ' + JSON.stringify(item) + ' with id: ' + res.body);
+                          console.log(' - api: created ' +
+                          JSON.stringify(item) +
+                          ' with id: ' + res.body);
                         }
                         resolve(res.body);
                     });
@@ -51,7 +59,7 @@ var Api = function(prefix) {
                 api.post(prefix + '/update')
                     .send(item)
                     .end(function(err, res) {
-                        expect(res.statusCode).to.equal(200);
+                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
                         assert.ok(!isNaN(res.body), 'id not a number');
                         resolve(item.id);
                     });
@@ -64,7 +72,7 @@ var Api = function(prefix) {
             return new Promise(function(resolve, reject) {
                 api.post(prefix + `/delete/${id}`)
                     .end(function(err, res) {
-                        expect(res.statusCode).to.equal(200);
+                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
                         resolve(id);
                     });
             });
