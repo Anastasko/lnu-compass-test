@@ -39,7 +39,7 @@ var Api = function(prefix) {
               console.log(' - api: creating ' + JSON.stringify(item));
             }
             return new Promise(function(resolve, reject) {
-                api.post(prefix + '/create')
+                api.post(prefix)
                     .send(item)
                     .end(function(err, res) {
                         assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
@@ -56,7 +56,7 @@ var Api = function(prefix) {
 
         update: function(item) {
             return new Promise(function(resolve, reject) {
-                api.post(prefix + '/update')
+                api.put(prefix)
                     .send(item)
                     .end(function(err, res) {
                         assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
@@ -70,7 +70,7 @@ var Api = function(prefix) {
             expect(id).to.exist;
             expect(id).to.be.a('number');
             return new Promise(function(resolve, reject) {
-                api.post(prefix + `/delete/${id}`)
+                api.delete(prefix + `/${id}`)
                     .end(function(err, res) {
                         assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
                         resolve(id);
