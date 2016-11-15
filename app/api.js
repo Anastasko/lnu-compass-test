@@ -4,10 +4,14 @@ var should = require('chai').should(),
     api = require('supertest')(config.host),
     assert = require('assert');
 
-var getException = function(text){
-  let ind1 = text.indexOf('<h1>');
-  let ind2 = text.indexOf('</h1>');
-  return (ind1 > 0 && ind2 > 0 && text.substring(ind1+4, ind2)) || text || '';
+var getException = function(res, data) {
+    let ind1 = res.text.indexOf('<h1>');
+    let ind2 = res.text.indexOf('</h1>');
+    let result = (ind1 > 0 && ind2 > 0 && res.text.substring(ind1 + 4, ind2)) || res.text || '';
+    if (res.text && data) {
+        result += '\n' + data;
+    }
+    return result;
 }
 
 var Api = function(prefix) {
@@ -18,8 +22,9 @@ var Api = function(prefix) {
             return new Promise(function(resolve, reject) {
                 api.get(prefix)
                     .end(function(err, res) {
-                      assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
-                      resolve(res.body);
+                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. ' +
+                            getException(res, prefix));
+                        resolve(res.body);
                     });
             });
         },
@@ -28,27 +33,20 @@ var Api = function(prefix) {
             return new Promise(function(resolve, reject) {
                 api.get(prefix + '/' + id)
                     .end(function(err, res) {
-                        assert.equal(res.statusCode, statusCode, res.statusCode + ' != ' + statusCode + '. '+ getException(res.text));
+                        assert.equal(res.statusCode, statusCode, res.statusCode + ' != ' + statusCode + '. ' +
+                            getException(res, `${prefix}/${id}`));
                         resolve(res.body);
                     });
             });
         },
 
         create: function(item) {
-            if (config.debug){
-              console.log(' - api: creating ' + JSON.stringify(item));
-            }
             return new Promise(function(resolve, reject) {
                 api.post(prefix)
                     .send(item)
                     .end(function(err, res) {
-                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
-                        assert.ok(!isNaN(res.body), 'id not a number');
-                        if (config.debug){
-                          console.log(' - api: created ' +
-                          JSON.stringify(item) +
-                          ' with id: ' + res.body);
-                        }
+                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. ' + getException(res, prefix + '/create ' + `${JSON.stringify(item)}`));
+                        assert.ok(res.body && !isNaN(res.body), 'id not a number');
                         resolve(res.body);
                     });
             });
@@ -59,7 +57,8 @@ var Api = function(prefix) {
                 api.put(prefix)
                     .send(item)
                     .end(function(err, res) {
-                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
+                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. ' +
+                            getException(res, prefix + '/update ' + `${JSON.stringify(item)}`));
                         assert.ok(!isNaN(res.body), 'id not a number');
                         resolve(item.id);
                     });
@@ -72,7 +71,8 @@ var Api = function(prefix) {
             return new Promise(function(resolve, reject) {
                 api.delete(prefix + `/${id}`)
                     .end(function(err, res) {
-                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. '+ getException(res.text));
+                        assert.equal(res.statusCode, 200, res.statusCode + ' != 200. ' +
+                            getException(res, prefix + `/delete/${id}`));
                         resolve(id);
                     });
             });

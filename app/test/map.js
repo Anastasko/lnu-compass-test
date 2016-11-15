@@ -1,54 +1,55 @@
-var genericService = require('../service');
+let Test = require('../test');
+let cityItem = require('./cityItem');
 
-var url = '/map';
-let service = genericService(url);
-let cityItemService = genericService('/cityItem')
-var chai = require('chai');
-chai.use(require('chai-shallow-deep-equal'));
-var expect = chai.expect;
+class MapTest extends Test {
 
-module.exports = {
+    constructor() {
+        super({
+            url: '/map'
+        })
+    }
 
-    run: function() {
-
-        describe(url, function() {
-
-            let example = {};
-
-            before(function(done) {
-                Promise.all(
-                        [
-                            cityItemService.having.created({}),
-                            cityItemService.having.created({}),
-                        ]
-                    )
-                    .then(function(owners) {
-
-                        owner1 = owners[0];
-                        owner2 = owners[1];
-
-                        example.item = {
-                            floor: 7,
-                            cityItem: {
-                                id: owner1.id
-                            }
-                        };
-
-                        example.itemUpd = {
-                            floor: 8,
-                            cityItem: {
-                                id: owner2.id
-                            }
-                        }
-                        done();
-                    })
+    getInstance() {
+        let that = this;
+        return cityItem.getInstance()
+            .then(function(item) {
+                return that.api.create({
+                    cityItem: item
+                });
+            })
+            .then(function(id){
+              return {
+                id: id
+              }
             });
+    }
 
-            service.run(example);
+    before(done) {
+        let that = this;
+        return Promise.all([
+            cityItem.getInstance(),
+            cityItem.getInstance()
+        ]).then(function(results) {
+            that.item1 = results[0];
+            that.item2 = results[1];
+            done()
+        })
+    }
 
-        });
+    getExample() {
+        return {
+            floor: 4,
+            cityItem: this.item1
+        }
+    }
 
-    },
+    getExampleUpd() {
+        return {
+            floor: 7,
+            cityItem: this.item2
+        }
+    }
 
-    service: service
-};
+}
+
+module.exports = new MapTest();

@@ -26,4 +26,4 @@ class CityItemTest extends Test {
 
 }
 
-module.exports = CityItemTest;
+module.exports = new CityItemTest();

@@ -1,21 +1,43 @@
-var genericService = require('../service');
+let Test = require('../test');
+let cityItem = require('./cityItem');
+let map = require('./map');
 
-var url = '/mapItem';
-let service = genericService(url);
-var chai = require('chai');
-chai.use(require('chai-shallow-deep-equal'));
-var expect = chai.expect;
+class MapItemTest extends Test {
 
-let cityItemService = genericService('/cityItem')
-let mapService = genericService('/map')
+    constructor() {
+        super({
+            url: '/mapItem'
+        })
+    }
 
-module.exports = {
+    before(done) {
+        let that = this;
+        return Promise.all([
+            map.getInstance(),
+            map.getInstance()
+        ]).then(function(results) {
+            that.map1 = results[0];
+            that.map2 = results[1];
+            done()
+        })
+    }
 
-    run: function() {
+    getExample() {
+        return {
+            map: this.map1,
+            path: 1,
+            name: '118-A'
+        }
+    }
 
+    getExampleUpd() {
+        return {
+            map: this.map2,
+            path: 2,
+            name: '270'
+        }
+    }
 
+}
 
-    },
-
-    service: service
-};
+module.exports = new MapItemTest();
