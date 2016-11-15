@@ -11,6 +11,9 @@ var getException = function(res, data) {
     if (res.text && data) {
         result += '\n' + data;
     }
+    if (config.debug){
+      result += '\n' + res.text;
+    }
     return result;
 }
 
