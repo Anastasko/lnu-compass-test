@@ -21,6 +21,10 @@ var Api = function(prefix) {
 
     return {
 
+        getPrefix: function(){
+            return prefix;
+        },
+
         findAll: function() {
             return new Promise(function(resolve, reject) {
                 api.get(prefix)
