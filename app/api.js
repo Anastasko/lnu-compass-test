@@ -66,8 +66,8 @@ var Api = function(prefix) {
                     .end(function(err, res) {
                         assert.equal(res.statusCode, 200, res.statusCode + ' != 200. ' +
                             getException(res, prefix + '/update ' + `${JSON.stringify(item)}`));
-                        assert.ok(!isNaN(res.body), 'id not a number');
-                        resolve(item.id);
+                       // assert.ok(!isNaN(res.body), 'id not a number');
+                        resolve();
                     });
             });
         },
@@ -90,6 +90,7 @@ var Api = function(prefix) {
         },
 
         get: function(url) {
+            console.log(prefix);
             return api.get(prefix + url)
         }
     }
