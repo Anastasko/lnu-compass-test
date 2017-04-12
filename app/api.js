@@ -5,15 +5,7 @@ var should = require('chai').should(),
     assert = require('assert');
 
 var getException = function(res, data) {
-    let ind1 = res.text.indexOf('<h1>');
-    let ind2 = res.text.indexOf('</h1>');
-    let result = (ind1 > 0 && ind2 > 0 && res.text.substring(ind1 + 4, ind2)) || res.text || '';
-    if (res.text && data) {
-        result += '\n' + data;
-    }
-    if (config.debug){
-      result += '\n' + res.text;
-    }
+    let result = res.text;
     return result;
 }
 

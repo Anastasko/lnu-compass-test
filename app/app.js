@@ -1,6 +1,3 @@
-// require('./test/cityItem').run();
-// require('./test/map').run();
-// require('./test/mapItem').run();
 
 const Api = require('./api');
 const _ = require('underscore');
@@ -8,6 +5,7 @@ const iosIcons = require('./data/iosIcons');
 const androidIcons = require('./data/androidIcons');
 const iconsMap = require('./data/iconsMap');
 const cityItems = require('./data/cityItem');
+const mapRooms = require('./data/map-items');
 
 var f = function create(api, data, index, keyMap, resolve) {
     console.log(keyMap[index]);
@@ -33,68 +31,79 @@ var syncAPI = function(api, data){
     });
 }
 
-var android = {};
-_.each(androidIcons, (icon, key) => {
-    let ico = {};
-    _.each(icon, (v,k) => {
-        ico[k] = {
-            url: v
-        }
+let items = [];
+_.each(mapRooms, v => {
+    _.each(v, v1 => {
+        v1.kind = { "id": null };
+        v1.owner = { "id": null };
+        items.push(v1);
     })
-    android[key] = ico;
 });
 
-var ios = {};
-_.each(iosIcons, (icon, key) => {
-    let ok = {
-        size2x: {
-            url: icon["@2x"]
-        },        size3x: {
-            url: icon["@3x"]
-        }
-    }
-    ios[key] = ok;
-});
+syncAPI(Api('/mapItem'), items);
 
-var kinds = {};
-var items = [];
-
-Promise.resolve().then(() => {
-    return syncAPI(Api('/iosIcon'), ios)
-}).then(() => {
-    return syncAPI(Api('/androidIcon'), android);
-}).then(() => {
-    _.each(iconsMap, (v,k) => {
-        let kind = {
-            name: k.toLowerCase(),
-            iosIcon: {
-                id: ios[v].id
-            },
-            androidIcon: {
-                id: android[v].id
-            }
-        }
-        kinds[k] = kind;
-    });
-}).then(() => {
-    return syncAPI(Api('/itemKind'), kinds);
-}).then(() => {
-    _.each(cityItems, (v,k) => {
-        let item = v;
-        v.kind = {
-            id: kinds[v.kind].id
-        };
-        v.owner = {
-            id: 1
-        }
-        items.push(item);
-    });
-}).then(() => {
-    return syncAPI(Api('/cityItem'), items);
-}).then(() => {
-    console.log("OK");
-}).catch((e) => {
-    console.error(e);
-})
+// var android = {};
+// _.each(androidIcons, (icon, key) => {
+//     let ico = {};
+//     _.each(icon, (v,k) => {
+//         ico[k] = {
+//             url: v
+//         }
+//     })
+//     android[key] = ico;
+// });
+//
+// var ios = {};
+// _.each(iosIcons, (icon, key) => {
+//     let ok = {
+//         size2x: {
+//             url: icon["@2x"]
+//         },        size3x: {
+//             url: icon["@3x"]
+//         }
+//     }
+//     ios[key] = ok;
+// });
+//
+// var kinds = {};
+// var items = [];
+//
+// Promise.resolve().then(() => {
+//     return syncAPI(Api('/iosIcon'), ios)
+// }).then(() => {
+//     return syncAPI(Api('/androidIcon'), android);
+// }).then(() => {
+//     _.each(iconsMap, (v,k) => {
+//         let kind = {
+//             name: k.toLowerCase(),
+//             iosIcon: {
+//                 id: ios[v].id
+//             },
+//             androidIcon: {
+//                 id: android[v].id
+//             }
+//         }
+//         kinds[k] = kind;
+//     });
+// }).then(() => {
+//     return syncAPI(Api('/itemKind'), kinds);
+// }).then(() => {
+//     _.each(cityItems, (v,k) => {
+//         let item = v;
+//         v.kind = {
+//             id: kinds[v.kind].id
+//         };
+//         v.owner = {
+//             id: 1
+//         }
+//         items.push(item);
+//     });
+// }).then(() => {
+//     return syncAPI(Api('/cityItem'), items);
+// }).then(() => {
+//     console.log("OK");
+// }).catch((e) => {
+//     console.error(e);
+// })
 
 
